@@ -15,7 +15,87 @@
   </div>
   <script src="../../common/js/jquery.js"></script>
   <script>
-    // 回答はここに書いてね
+    $(function() {
+    let wrapper = $('#wrapper');
+    // 「捕まえる」失敗時の画面表示
+    let failHtml =
+    `
+      <p class="text">逃げられてしまった...</p>
+      <button class="btn mt" data-js="reset">戻る</button>
+    `;
+
+    // 「ポケモンを探す」後の画面表示
+    let encountHtml =
+    `
+      <p class="name"></p>
+      <div>
+        <img class="img" src="" alt="">
+      </div>
+      <div>
+        <button class="btn" id="catch">捕まえる</button>
+        <button class="btn" data-js="reset">逃げる</button>
+      </div>
+    `;
+
+    // 「捕まえる」成功時の画面表示
+    let doneHtml =
+    `
+      <p class="name">ゲットしました</p>
+      <div>
+        <img class="img" src="" alt="">
+      </div>
+      <button class="btn" data-js="reset">戻る</button>
+    `;
+
+
+      $('#pokemon_search').click(function() {
+        const pokemonId = Math.floor(Math.random() * 151) + 1;
+        $.ajax({
+          url: `https://pokeapi.co/api/v2/pokemon/${pokemonId}/`,
+          dataType: 'json',
+          success: function(data) {
+            wrapper.html(encountHtml);
+            $('.img').attr('src', data.sprites.front_default);
+
+            $.ajax({
+              url:data.species.url,
+              dataType: 'json',
+              success: function(nameData){
+                  const pokemonName = nameData.names.find(name => name.language.name === 'ja').name
+                  $('.name').text(pokemonName);
+                },
+                error: function() {
+                  console.error('エラーが発生しました');
+                }
+            });
+
+            $('#catch').click(function() {
+              let random = Math.floor(Math.random()*2 + 1) ;
+              if (random === 1) {
+                $.ajax({
+                  url:'https://pokeapi.co/api/v2/item/4',
+                  dataType: 'json',
+                  success: function(ballData) {
+                    wrapper.html(doneHtml);
+                    $('.img').attr('src', ballData.sprites.default);
+                  }
+                });
+              } else {
+                wrapper.html(failHtml);
+              }
+            });
+
+            $('[data-js="reset"]').click(function() {
+              wrapper.html('<button type="button" class="btn search-btn" id="pokemon_search">ポケモンを探す</button>');
+            });
+            },
+            error: function() {
+                  console.error('エラーが発生しました');
+            }
+        });
+      });
+  });
+
   </script>
 </body>
 </html>
